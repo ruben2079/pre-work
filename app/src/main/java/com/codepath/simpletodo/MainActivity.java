@@ -1,12 +1,17 @@
 package com.codepath.simpletodo;
 
+import android.content.Intent;
+import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
 
@@ -14,12 +19,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static android.R.attr.name;
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import static com.codepath.simpletodo.R.id.etNewItem;
 import static com.codepath.simpletodo.R.id.lvItems;
 
 public class MainActivity extends AppCompatActivity {
     ArrayList<String> items;
     ArrayAdapter<String> itemsAdapter;
     ListView lvItems;
+
+    private final int REQUEST_CODE = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +40,19 @@ public class MainActivity extends AppCompatActivity {
         readItems();
         itemsAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, items);
         lvItems.setAdapter(itemsAdapter);
-        items.add("First Item");
-        items.add("Second Item");
+        //items.add("First Item");
+        //items.add("Second Item");
         setupListViewListener();
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l){
+                Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
+
+                intent.putExtra("getItem",lvItems.getItemAtPosition(i).toString());
+                //startActivity(intent);
+                startActivityForResult(intent, 1);
+            }
+        });
     }
 
     public void onAddItem(View v) {
@@ -75,5 +95,21 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (resultCode == MainActivity.RESULT_OK && requestCode == REQUEST_CODE) {
+
+            // Extract name value from result extras
+            String item = data.getExtras().getString("setItem");
+
+            Log.d("setItem: ", item);
+
+            itemsAdapter.add(item);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+
     }
 }
